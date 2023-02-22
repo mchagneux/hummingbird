@@ -124,5 +124,3 @@ for epoch in range(n_epochs):
 #  lr_scheduler.step()
 
 torch.save(model.state_dict(), "trained_weights_50epochs_collab_full_retrain")
-
-np.savetxt("my_loss.txt", my_loss)
