@@ -23,7 +23,13 @@ device
 # os.getcwd()
 
 pretrained_weights = RetinaNet_ResNet50_FPN_V2_Weights.DEFAULT
-model = retinanet_resnet50_fpn_v2(weights = pretrained_weights)
+
+# On peut ici régler les tailles des images et différents autres arguments
+# La liste des arguments est sur la doc
+# https://github.com/pytorch/vision/blob/main/torchvision/models/detection/retinanet.py
+# Dans la partie __init__ de la classe RetinaNet (autour de la ligne 350)
+model = retinanet_resnet50_fpn_v2(weights = pretrained_weights, min_size = 224, max_size = 224, 
+topk_candidates = 20, detections_per_img = 10)
 
 out_channels = model.head.classification_head.conv[0].out_channels
 num_anchors = model.head.classification_head.num_anchors
