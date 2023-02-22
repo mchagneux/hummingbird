@@ -5,42 +5,44 @@ import os
 from torchvision.io.image import read_image
 
 class HummingbirdDataset(torch.utils.data.Dataset):
-  def __init__(self, root, data_type = "train"): # split is either train or test
+  def __init__(self, root, device, data_type = "train"): # split is either train or test
     self.root = root
-    self.annotations = pd.read_csv(os.path.join(root, data_type+'.csv'), 
+    print('Building dataset...')
+    self.device = device
+    annotations = pd.read_csv(os.path.join(root, data_type+'.csv'), 
                                    header = None, 
-                                   names = ['img', 'xmin', 'ymin', 'xmax', 'ymax', 'cls'])
-    class_names = pd.read_csv(os.path.join(root, 'class.csv'), header=None, names=['Name','ID'])
-    self.class_names = class_names
-    self.class_name_to_class_id = {name:id for name,id in zip(class_names.iloc[:,0], class_names.iloc[:,1])}
-    # self.imgs = [os.path.join(data_type, file) for file in os.listdir(os.path.join(root, data_type))]
-    self.imgs = self.annotations.iloc[:, 0]
-  def __getitem__(self, idx):
-    img_path = self.imgs[idx]
-    image_annotations = self.annotations[self.annotations["img"] == img_path]
-    n_rows = image_annotations.shape[0]
-    boxes = []
-    labels = []
-    if n_rows == 1:
-      img_path, xmin, ymin, xmax, ymax, cls_name = self.annotations.iloc[idx, :]
-      if isinstance(cls_name, str):
-        box = [xmin, ymin, xmax, ymax]
-        label  = self.class_name_to_class_id[cls_name]
-        labels.insert(0, label)
-        boxes.insert(0, box)
-    elif n_rows > 1:
-      for i in np.arange(n_rows):
-        img_path, xmin, ymin, xmax, ymax, cls_name = image_annotations.iloc[i, :]
-        box = [xmin, ymin, xmax, ymax]
-        label  = self.class_name_to_class_id[cls_name]
-        labels.insert(i, label)
-        boxes.insert(i, box)
-    else:
-      print("Oups, " + img_path + " is not in the annotations file")
-    img = read_image(img_path) / 255
-    target = {'boxes': torch.as_tensor(boxes), 
-              'labels': torch.as_tensor(labels)}
-    return img, target
+                                   names = ['filename', 'xmin', 'ymin', 'xmax', 'ymax', 'cls'])
+    
+    self.class_names = pd.read_csv(os.path.join(root, 'class.csv'), header=None, names=['Name','ID'])
 
+    self.class_name_to_class_id = {name:id for name,id in zip(self.class_names.iloc[:,0], self.class_names.iloc[:,1])}
+
+    self.filenames = list(np.unique(annotations.iloc[:, 0]))
+
+    self.annotations_for_filename = dict()
+    for filename in self.filenames: 
+      self.annotations_for_filename[filename] = annotations[annotations['filename'] == filename]
+    print('Dataset built.')
+
+  def __getitem__(self, idx):
+    filename = self.filenames[idx]
+    img = read_image(filename) / 255.
+    annotations_for_image = self.annotations_for_filename[filename]
+    n_rows = annotations_for_image.shape[0]
+    bboxes = []
+    labels = []
+
+    for idx in range(n_rows):
+      _ , xmin, ymin, xmax, ymax, cls_name = annotations_for_image.iloc[idx,:]
+      if isinstance(cls_name, str):
+        bboxes.append([xmin, ymin, xmax, ymax])
+        labels.append(self.class_name_to_class_id[cls_name])
+
+    target =  {'boxes':torch.as_tensor(bboxes, device=self.device), 'labels':torch.as_tensor(labels, device=self.device)}
+
+    return img.to(device=self.device), target  
+  
   def __len__(self):
-    return len(self.imgs)
+    return len(self.filenames)
+
+

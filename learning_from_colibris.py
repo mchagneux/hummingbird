@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 import torch
 from torch.utils.data import DataLoader
-import os
 import math
 import torchvision
 from torchvision.io.image import read_image
@@ -17,7 +17,6 @@ import numpy as np
 from PIL import Image
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-device
 
 # os.chdir("drive/MyDrive/Colab_Notebooks/00_training_detector_directory/")
 # os.getcwd()
@@ -81,13 +80,17 @@ sum(p.nelement() for p in trained_params)
 
 from HummingbirdDataset import HummingbirdDataset
 my_path = './'
-full_train_set = HummingbirdDataset(root = my_path, data_type = "train")
-def my_collate(batch):
-  image = [item[0] for item in batch]
-  target = [item[1] for item in batch]
-  return [image, target]
+full_train_set = HummingbirdDataset(root = my_path, device=device, data_type = "train")
+# def my_collate(batch):
+#   image = [item[0] for item in batch]
+#   target = [item[1] for item in batch]
+#   return [image, target]
 
-dataloader = DataLoader(full_train_set, batch_size = 16, shuffle=True,  collate_fn = my_collate, num_workers=torch.cuda.is_available() + 1)
+def collate_fn(batch):
+    return tuple(zip(*batch))
+
+
+dataloader = DataLoader(full_train_set, batch_size = 16, shuffle=True,  collate_fn = collate_fn)#, num_workers=torch.cuda.is_available() + 1)
 
 # optimizer = torch.optim.SGD(trained_params, lr=0.005,
 #                             momentum=0.9, weight_decay=0.0005)
@@ -109,8 +112,8 @@ my_loss = []
 for epoch in range(n_epochs):
   n_batch = 0
   for images, targets in tqdm(dataloader):
-    images = list(image.to(device) for image in images)
-    targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
+    # images = list(image.to(device) for image in images)
+    # targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
     loss_dict = model(images, targets)
     # classification_losses[epoch, n_batch] = loss_dict.get("classification").detach().numpy()
     # bbox_losses[epoch, n_batch] = loss_dict.get("bbox_regression").detach().numpy()
