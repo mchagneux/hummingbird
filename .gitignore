@@ -4,6 +4,9 @@ test/
 *_collab_full_retrain*
 *.tar
 old*.csv
+train.csv
+test.csv
+class.csv
 
 .Rproj.user
 .Rhistory
