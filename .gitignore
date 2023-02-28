@@ -3,6 +3,7 @@ train/
 test/
 *_collab_full_retrain*
 *.tar
+old*.csv
 
 .Rproj.user
 .Rhistory
