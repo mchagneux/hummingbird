@@ -1,5 +1,8 @@
 __pycache__/
-train/*.JPG
-test/*.JPG
+train/
+test/
 *_collab_full_retrain*
+*.tar
 
+.Rproj.user
+.Rhistory
