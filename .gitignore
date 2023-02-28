@@ -1,3 +1,5 @@
 __pycache__/
 train/*.JPG
 test/*.JPG
+*_collab_full_retrain*
+
