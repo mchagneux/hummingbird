@@ -28,7 +28,8 @@ pretrained_weights = RetinaNet_ResNet50_FPN_V2_Weights.DEFAULT
 # https://github.com/pytorch/vision/blob/main/torchvision/models/detection/retinanet.py
 # Dans la partie __init__ de la classe RetinaNet (autour de la ligne 350)
 model = retinanet_resnet50_fpn_v2(weights = pretrained_weights, min_size = 400, max_size = 1300, 
-topk_candidates = 20, detections_per_img = 10)
+topk_candidates = 20, detections_per_img = 10, trainable_backbone_layers=0)
+
 
 out_channels = model.head.classification_head.conv[0].out_channels
 num_anchors = model.head.classification_head.num_anchors
@@ -39,8 +40,9 @@ torch.nn.init.normal_(cls_logits.weight, std=0.01)  # as per pytorch code
 torch.nn.init.constant_(cls_logits.bias, -math.log((1 - 0.01) / 0.01))  # as per pytorcch code
 # assign cls head to model
 model.head.classification_head.cls_logits = cls_logits
-if torch.cuda.is_available():
-    model.cuda()
+
+model.to(device)
+
 list_names =[
 # 'head.classification_head.conv.0.0.weight', 
 # 'head.classification_head.conv.0.1.weight', 
@@ -71,12 +73,12 @@ list_names =[
 'head.regression_head.bbox_reg.weight', 
 'head.regression_head.bbox_reg.bias']
 # Set requires_grad to false
-for n, p in model.named_parameters():
-     if n not in list_names:
-         p.requires_grad = False
+# for n, p in model.named_parameters():
+#      if n not in list_names:
+#          p.requires_grad = False
 
 trained_params = [p for p in model.parameters() if p.requires_grad]
-sum(p.nelement() for p in trained_params)
+print(sum(p.nelement() for p in trained_params))
 
 from HummingbirdDataset import HummingbirdDataset
 my_path = './'
@@ -90,7 +92,7 @@ def collate_fn(batch):
     return tuple(zip(*batch))
 
 
-dataloader = DataLoader(full_train_set, batch_size = 16, shuffle=True,  collate_fn = collate_fn)#, num_workers=torch.cuda.is_available() + 1)
+dataloader = DataLoader(full_train_set, batch_size = 32, shuffle=True,  collate_fn = collate_fn)#, num_workers=torch.cuda.is_available() + 1)
 
 # optimizer = torch.optim.SGD(trained_params, lr=0.005,
 #                             momentum=0.9, weight_decay=0.0005)
@@ -104,7 +106,7 @@ optimizer = torch.optim.Adam(trained_params)
 model.train()
 from tqdm import tqdm
 
-n_epochs = 50
+n_epochs = 200
 # classification_losses = np.zeros((len(dataloader), n_epochs))
 # bbox_losses =  np.zeros((len(dataloader), n_epochs))
 
