@@ -7,6 +7,7 @@ old*.csv
 train.csv
 test.csv
 class.csv
-
+trained_weights*
 .Rproj.user
 .Rhistory
+hummingbird.Rproj

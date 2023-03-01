@@ -128,4 +128,4 @@ for epoch in range(n_epochs):
   my_loss.append(losses)
 #  lr_scheduler.step()
 
-torch.save(model.state_dict(), "trained_weights_50epochs_collab_full_retrain")
+torch.save(model.state_dict(), "trained_weights_200epochs_WE")
