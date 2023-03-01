@@ -104,7 +104,7 @@ optimizer = torch.optim.Adam(trained_params)
 model.train()
 from tqdm import tqdm
 
-n_epochs = 50
+n_epochs = 200
 # classification_losses = np.zeros((len(dataloader), n_epochs))
 # bbox_losses =  np.zeros((len(dataloader), n_epochs))
 
@@ -126,4 +126,4 @@ for epoch in range(n_epochs):
   my_loss.append(losses)
 #  lr_scheduler.step()
 
-torch.save(model.state_dict(), "trained_weights_50epochs_collab_full_retrain")
+torch.save(model.state_dict(), "trained_weights_200epochs_WE")
