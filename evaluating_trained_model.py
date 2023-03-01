@@ -78,26 +78,27 @@ for n, p in model.named_parameters():
 trained_params = [p for p in model.parameters() if p.requires_grad]
 sum(p.nelement() for p in trained_params)
 
-model.load_state_dict(torch.load("trained_weights_50epochs_collab_full_retrain_2"))
+model.load_state_dict(torch.load("trained_weights_50epochs_WE"))
 model.eval()
 
 class_names = pd.read_csv("class.csv", header = None)
 colors = ["white", "black", "green", "red", "purple", "blue", "orange"]
 
-example_path = "test/Camera 1__100RECNX__2022-07-23__11-20-23(3).JPG"
+example_path = "test/Session_4_Verrier_FF__cam_3__2022-07-26__08-00-00(1).JPG"
 example_image = read_image(example_path)
 
 prediction = model([example_image / 255])
-predicted_scores = prediction[0]["scores"]
+predicted_scores = prediction[0]["scores"].detach().numpy()
 predicted_labels = np.array(prediction[0]["labels"])
 n_predictions = len(predicted_labels)
-score_threshold = .05
+score_threshold = 0.2
 kept_labels = [class_names.iloc[predicted_labels[j], 0] 
     for j in  range(n_predictions) if predicted_scores[j] > score_threshold]
-kept_labels = [class_names.iloc[lab, 0] for lab, score in zip(predicted_labels, predicted_scores) if score > score_threshold]
+kept_labels = [class_names.iloc[lab, 0] + " " + np.round(score * 100).astype("str") for lab, score in zip(predicted_labels, predicted_scores) if score > score_threshold]
+
 kept_colors = [colors[lab] for lab, score in zip(predicted_labels, predicted_scores) if score > score_threshold]
 kept_boxes = prediction[0]["boxes"][[j for j, score in zip(range(n_predictions), predicted_scores) if score > score_threshold]]
-predicted_boxes = to_pil_image(draw_bounding_boxes(example_image, 
+predicted_boxes = to_pil_image(draw_bounding_boxes(example_image,
                           boxes = kept_boxes,
                           labels = kept_labels,
                           colors = kept_colors,
@@ -105,3 +106,5 @@ predicted_boxes = to_pil_image(draw_bounding_boxes(example_image,
 fig, ax = plt.subplots()
 ax.imshow(predicted_boxes)
 plt.show()            
+
+
