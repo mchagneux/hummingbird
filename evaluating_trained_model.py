@@ -28,7 +28,8 @@ pretrained_weights = RetinaNet_ResNet50_FPN_V2_Weights.DEFAULT
 # https://github.com/pytorch/vision/blob/main/torchvision/models/detection/retinanet.py
 # Dans la partie __init__ de la classe RetinaNet (autour de la ligne 350)
 model = retinanet_resnet50_fpn_v2(weights = pretrained_weights, min_size = 400, max_size = 1300, 
-topk_candidates = 20, detections_per_img = 10)
+topk_candidates = 20, detections_per_img = 10, trainable_backbone_layers=0)
+
 
 out_channels = model.head.classification_head.conv[0].out_channels
 num_anchors = model.head.classification_head.num_anchors
@@ -39,8 +40,9 @@ torch.nn.init.normal_(cls_logits.weight, std=0.01)  # as per pytorch code
 torch.nn.init.constant_(cls_logits.bias, -math.log((1 - 0.01) / 0.01))  # as per pytorcch code
 # assign cls head to model
 model.head.classification_head.cls_logits = cls_logits
-if torch.cuda.is_available():
-    model.cuda()
+
+model.to(device)
+
 list_names =[
 # 'head.classification_head.conv.0.0.weight', 
 # 'head.classification_head.conv.0.1.weight', 
@@ -71,27 +73,27 @@ list_names =[
 'head.regression_head.bbox_reg.weight', 
 'head.regression_head.bbox_reg.bias']
 # Set requires_grad to false
-for n, p in model.named_parameters():
-     if n not in list_names:
-         p.requires_grad = False
+# for n, p in model.named_parameters():
+#      if n not in list_names:
+#          p.requires_grad = False
 
 trained_params = [p for p in model.parameters() if p.requires_grad]
-sum(p.nelement() for p in trained_params)
+print(sum(p.nelement() for p in trained_params))
 
-model.load_state_dict(torch.load("trained_weights_50epochs_WE"))
+model.load_state_dict(torch.load("trained_weights_200epochs_WE_full_last_layer",map_location = device))
 model.eval()
 
 class_names = pd.read_csv("class.csv", header = None)
-colors = ["white", "black", "green", "red", "purple", "blue", "orange"]
+colors = ["red", "blue", "green", "white", "purple", "black", "orange"]
 
-example_path = "test/Session_4_Verrier_FF__cam_3__2022-07-26__08-00-00(1).JPG"
+example_path = "test/Session_4_Verrier_FF__cam_3__2022-07-22__09-09-54(5).JPG"
 example_image = read_image(example_path)
 
 prediction = model([example_image / 255])
 predicted_scores = prediction[0]["scores"].detach().numpy()
 predicted_labels = np.array(prediction[0]["labels"])
 n_predictions = len(predicted_labels)
-score_threshold = 0.2
+score_threshold = 0.01
 kept_labels = [class_names.iloc[predicted_labels[j], 0] 
     for j in  range(n_predictions) if predicted_scores[j] > score_threshold]
 kept_labels = [class_names.iloc[lab, 0] + " " + np.round(score * 100).astype("str") for lab, score in zip(predicted_labels, predicted_scores) if score > score_threshold]
@@ -106,5 +108,5 @@ predicted_boxes = to_pil_image(draw_bounding_boxes(example_image,
 fig, ax = plt.subplots()
 ax.imshow(predicted_boxes)
 plt.show()            
-
+s
 
