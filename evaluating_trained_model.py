@@ -86,14 +86,14 @@ model.eval()
 class_names = pd.read_csv("class.csv", header = None)
 colors = ["red", "blue", "green", "white", "purple", "black", "orange"]
 
-example_path = "test/Session_4_Verrier_FF__cam_3__2022-07-22__09-09-54(5).JPG"
+example_path = "train/Session_1_Case_Pilote_FC__Camera3__2022-06-17__08-08-24(6).JPG"
 example_image = read_image(example_path)
 
 prediction = model([example_image / 255])
 predicted_scores = prediction[0]["scores"].detach().numpy()
 predicted_labels = np.array(prediction[0]["labels"])
 n_predictions = len(predicted_labels)
-score_threshold = 0.01
+score_threshold = 0.2
 kept_labels = [class_names.iloc[predicted_labels[j], 0] 
     for j in  range(n_predictions) if predicted_scores[j] > score_threshold]
 kept_labels = [class_names.iloc[lab, 0] + " " + np.round(score * 100).astype("str") for lab, score in zip(predicted_labels, predicted_scores) if score > score_threshold]
@@ -107,6 +107,5 @@ predicted_boxes = to_pil_image(draw_bounding_boxes(example_image,
                           width=2).detach())
 fig, ax = plt.subplots()
 ax.imshow(predicted_boxes)
-plt.show()            
-s
+plt.savefig(fname = )
 
