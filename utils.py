@@ -11,8 +11,8 @@ def get_model(device, num_classes):
 # https://github.com/pytorch/vision/blob/main/torchvision/models/detection/retinanet.py
 # Dans la partie __init__ de la classe RetinaNet (autour de la ligne 350)
   model = retinanet_resnet50_fpn_v2(weights = pretrained_weights, 
-  min_size = 400, max_size = 1300, 
-  topk_candidates = 20, detections_per_img = 10, trainable_backbone_layers=0)
+  min_size = 128, max_size = 128, 
+  topk_candidates = 10, detections_per_img = 5, trainable_backbone_layers=0)
   out_channels = model.head.classification_head.conv[0].out_channels
   num_anchors = model.head.classification_head.num_anchors
   model.head.classification_head.num_classes = num_classes

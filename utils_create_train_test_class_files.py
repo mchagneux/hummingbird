@@ -21,3 +21,4 @@ class_names = pd.Categorical(pd.Series(train_files["class"].unique()),
 classes = pd.DataFrame({"class_name": class_names}).sort_values("class_name").reset_index(drop=True)
 classes["class_number"] = classes.index
 classes.to_csv('class.csv', index=False, header=False)
+
