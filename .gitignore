@@ -11,3 +11,5 @@ trained_weights*
 .Rproj.user
 .Rhistory
 hummingbird.Rproj
+prediction*/
+runs/
