@@ -6,7 +6,7 @@ full_annotation_file = pd.read_csv("data_full_annotations.csv")
 def get_annotation_file(name, annotation_file, write = False):
   files = os.listdir(name)
   annotations = annotation_file[annotation_file['filename'].isin(files)]
-  annotations.filename = name + '/' + annotations.filename
+  annotations.loc[:, "filename"] =  name + '/' + annotations.loc[:, "filename"]
   if write:
     annotations.to_csv(name + '.csv', index=False, header=False)
   else:
