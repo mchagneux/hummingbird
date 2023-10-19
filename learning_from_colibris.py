@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+pi# -*- coding: utf-8 -*-
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 import torch
@@ -33,7 +33,7 @@ train_dataloader = DataLoader(full_train_set, batch_size = 16,
 test_dataloader = DataLoader(full_test_set, batch_size = 16, 
                              shuffle=True,  collate_fn = collate_fn)#, num_workers=torch.cuda.is_available() + 1)
 
-optimizer = torch.optim.Adam(trained_params)
+optimizer = torch.optim.Adam(trained_params, lr = 1e-4)
 model.load_state_dict(torch.load("trained_weights",map_location = device))
 model.train()
 
@@ -62,7 +62,7 @@ for epoch in range(n_epochs):
     optimizer.zero_grad()
     losses.backward()
     optimizer.step()
-  train_loss.append(epoch_loss)
+  train_loss.append(epoch_loss.data)
   train_writer.add_scalar("Loss/train/", epoch_loss, epoch)
   # Testing epoch epoch
   epoch_loss = 0
@@ -70,7 +70,7 @@ for epoch in range(n_epochs):
     loss_dict = model(images, targets)
     losses = sum(loss for loss in loss_dict.values())
     epoch_loss += losses
-  test_loss.append(epoch_loss)
+  test_loss.append(epoch_loss.data)
   test_writer.add_scalar("Loss/test/", epoch_loss, epoch)
 
 torch.save(model.state_dict(), "trained_weights_with_random_hflip")

@@ -27,7 +27,7 @@ model = get_model(device, num_classes)
 trained_params = [p for p in model.parameters() if p.requires_grad]
 print(sum(p.nelement() for p in trained_params))
 
-model.load_state_dict(torch.load("trained_weights",map_location = device))
+model.load_state_dict(torch.load("trained_weights_with_random_hflip",map_location = device))
 model.eval()
 
 class_names = pd.read_csv("class.csv", header = None)
